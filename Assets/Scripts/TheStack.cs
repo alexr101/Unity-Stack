@@ -8,7 +8,10 @@ public class TheStack : MonoBehaviour {
 
 	private GameObject[] theStack;
 	private int stackIndex;
-	private int scoreIndex = 0;
+	private int scoreCount = 0;
+
+	private float tileTransition = 0.0f;
+	private float tileSpeed = 3.0f;
 
 	void Start () {
 		theStack = new GameObject[transform.childCount];
@@ -24,27 +27,48 @@ public class TheStack : MonoBehaviour {
 	}
 
 	void Update () {
+
 		if( Input.GetKey("down") )
 		{
-			SpawnTile ();
-			scoreIndex++;
+			if (PlaceTile ()) {
+				SpawnTile ();
+				scoreCount++;
+			} else {
+				EndGame ();
+			}
+
 		}
+		MoveTile ();
+
+	}
+
+	private void MoveTile(){
+		tileTransition += Time.deltaTime * tileSpeed;
+
+		theStack [stackIndex].transform.localPosition = new Vector3 (Mathf.Sin( tileTransition * BOUNDS_SIZE), scoreCount, 0);
+
 	}
 
 	private void SpawnTile(){
 
-		theStack [stackIndex].transform.localPosition = new Vector3 (0, scoreIndex, 0);
 
 		stackIndex--;
 		if (stackIndex < 0)
 			stackIndex = transform.childCount-1;
+
+		theStack [stackIndex].transform.localPosition = new Vector3 (0, scoreCount, 0);
+
 		
 
 
 	}
 
-	private void PlaceTile(){
+	private bool PlaceTile(){
 
+		return true;
+	}
+
+	private void EndGame(){
 
 	}
 }
