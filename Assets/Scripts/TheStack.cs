@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class TheStack : MonoBehaviour {
 
+	private const float BOUNDS_SIZE = 3.5f;
+
 	private GameObject[] theStack;
 	private int stackIndex;
 	private int scoreIndex = 0;
