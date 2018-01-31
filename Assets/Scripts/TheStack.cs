@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class TheStack : MonoBehaviour {
 
-	private const float BOUNDS_SIZE = 3.5f;
+	private const float BOUNDS_SIZE = 3f;
+
+	public GameObject camera;
 
 	private GameObject[] theStack;
 	private int stackIndex;
@@ -12,6 +14,10 @@ public class TheStack : MonoBehaviour {
 
 	private float tileTransition = 0.0f;
 	private float tileSpeed = 3.0f;
+
+	private float secondaryPosition = 0;
+
+	private bool isMovingOnX = true;
 
 	void Start () {
 		theStack = new GameObject[transform.childCount];
@@ -28,9 +34,10 @@ public class TheStack : MonoBehaviour {
 
 	void Update () {
 
-		if( Input.GetKey("down") )
+		if( Input.GetMouseButtonDown(0) )
 		{
 			if (PlaceTile ()) {
+				updateCamera ();
 				SpawnTile ();
 				scoreCount++;
 			} else {
@@ -42,10 +49,23 @@ public class TheStack : MonoBehaviour {
 
 	}
 
+	private void updateCamera()
+	{
+		float cameraX = camera.transform.localPosition.x;
+		float cameraY = camera.transform.localPosition.y;
+		float cameraZ = camera.transform.localPosition.z;
+
+		camera.transform.localPosition = new Vector3 (cameraX, cameraY+1, cameraZ);
+
+	}
+
 	private void MoveTile(){
 		tileTransition += Time.deltaTime * tileSpeed;
 
-		theStack [stackIndex].transform.localPosition = new Vector3 (Mathf.Sin( tileTransition * BOUNDS_SIZE), scoreCount, 0);
+		if(isMovingOnX)
+			theStack [stackIndex].transform.localPosition = new Vector3 (Mathf.Sin( tileTransition) * BOUNDS_SIZE, scoreCount, secondaryPosition);
+		else 
+			theStack [stackIndex].transform.localPosition = new Vector3 (secondaryPosition, scoreCount, Mathf.Sin( tileTransition) * BOUNDS_SIZE );
 
 	}
 
@@ -58,13 +78,20 @@ public class TheStack : MonoBehaviour {
 
 		theStack [stackIndex].transform.localPosition = new Vector3 (0, scoreCount, 0);
 
-		
+
 
 
 	}
 
 	private bool PlaceTile(){
 
+		Transform t = theStack [stackIndex].transform;
+
+		secondaryPosition = (isMovingOnX) 
+			? t.localPosition.x
+			: t.localPosition.z;
+
+		isMovingOnX = !isMovingOnX;			
 		return true;
 	}
 
