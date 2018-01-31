@@ -57,6 +57,7 @@ public class TheStack : MonoBehaviour {
 
 		camera.transform.localPosition = new Vector3 (cameraX, cameraY+1, cameraZ);
 
+
 	}
 
 	private void MoveTile(){
