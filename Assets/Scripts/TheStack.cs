@@ -19,10 +19,12 @@ using UnityEngine;
 public class TheStack : MonoBehaviour {
 
 	private const float BOUNDS_SIZE = 3f;
+    private const float STACK_ANIMATION_SPEED = 5f;
 
-	public GameObject camera;
-
-	private GameObject[] theStack;
+	//public GameObject camera;
+    private GameObject[] theStack;
+    private Vector2 stackBounds = new Vector2(BOUNDS_SIZE, BOUNDS_SIZE);
+    private GameObject previousTile;
     private GameObject currentTile;
 	private int stackIndex;
 	private int scoreCount = 0;
@@ -32,6 +34,7 @@ public class TheStack : MonoBehaviour {
 
 	private float secondaryPosition = 0;
 	private bool isMovingOnX = true;
+    Vector3 newPos;
 
 	void Start () {
         createStack();
@@ -40,11 +43,10 @@ public class TheStack : MonoBehaviour {
 
     void createStack(){
         theStack = new GameObject[transform.childCount];
-        for (var i = 0; i < transform.childCount; i++)
-        {
+        for (var i = 0; i < transform.childCount; i++) {
             theStack[i] = transform.GetChild(i).gameObject;
         }
-        stackIndex = transform.childCount - 1;
+        stackIndex = transform.childCount - 1; 
         currentTile = theStack[stackIndex];
     }
 
@@ -52,9 +54,10 @@ public class TheStack : MonoBehaviour {
 
 		if( Input.GetMouseButtonDown(0) )
 		{
-			if ( PlaceTile() ) {
-				updateCamera();
-				SpawnTile();
+			if ( ShouldPlaceTile() ) {
+				//updateCamera();
+                newPos = Vector3.down * (scoreCount + 1);
+                SpawnTile();
                 currentTile = theStack[stackIndex];
 				scoreCount++;
 			} else {
@@ -62,19 +65,22 @@ public class TheStack : MonoBehaviour {
 			}
 
 		}
-		MoveTile ();
 
+		MoveTile();
+        transform.position = Vector3.Lerp(this.transform.position, newPos, STACK_ANIMATION_SPEED*Time.deltaTime);
 	}
 
+    //private void updateStackPosition(){
+    //    newPos = Vector3.down * scoreCount;
+    //}
 
-	private void updateCamera()
-	{
-		float cameraX = camera.transform.localPosition.x;
-		float cameraY = camera.transform.localPosition.y;
-		float cameraZ = camera.transform.localPosition.z;
+	//private void updateCamera(){
+	//	float cameraX = camera.transform.localPosition.x;
+	//	float cameraY = camera.transform.localPosition.y;
+	//	float cameraZ = camera.transform.localPosition.z;
 
-        camera.transform.localPosition = new Vector3(cameraX, cameraY+1, cameraZ);
-	}
+    //  camera.transform.localPosition = new Vector3(cameraX, cameraY+1, cameraZ);
+	//}
 
 	private void MoveTile(){
         float pos1;
@@ -118,19 +124,40 @@ public class TheStack : MonoBehaviour {
 	private void SpawnTile(){
 		stackIndex--;
 		if (stackIndex < 0)
-			stackIndex = transform.childCount-1;
+			stackIndex = transform.childCount-2; // -2 because stack moves down
 
 		theStack[stackIndex].transform.localPosition = new Vector3 (0, scoreCount, 0);
 	}
 
-	private bool PlaceTile(){
+    private bool ShouldPlaceTile(){
 
-		Transform t = theStack [stackIndex].transform;
+        //Transform t = theStack[stackIndex].transform;
 
-		secondaryPosition = (isMovingOnX) 
-			? t.localPosition.x
-			: t.localPosition.z;
+        float delta;
 
+        int previousIndex = (stackIndex == 0) ? transform.childCount - 1 : stackIndex - 1;
+                                
+        previousTile = theStack[previousIndex];
+        //currentTile = theStack[stackIndex];
+        if(isMovingOnX) {
+            delta =  previousTile.transform.position.x - currentTile.transform.position.x;
+            delta = Mathf.Abs(delta);
+            stackBounds.x -= delta;
+        } else {
+            delta = previousTile.transform.position.z - currentTile.transform.position.z;
+            delta = Mathf.Abs(delta);
+            stackBounds.y -= delta;
+        }
+        Debug.Log(delta);
+        //previousTile.transform.localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
+
+        //if (delta <= 0) return false;
+
+
+        secondaryPosition = (isMovingOnX)
+            ? currentTile.transform.localPosition.x 
+            : currentTile.transform.localPosition.z;
+        
 		isMovingOnX = !isMovingOnX;			
 		return true;
 	}
