@@ -34,7 +34,7 @@ public class TheStack : MonoBehaviour {
 
 	private float secondaryPosition = 0;
 	private bool isMovingOnX = true;
-    Vector3 newPos;
+    private Vector3 newPos;
 
 	void Start () {
         createStack();
@@ -42,11 +42,12 @@ public class TheStack : MonoBehaviour {
 	}
 
     void createStack(){
+        newPos = new Vector3(transform.position.x, transform.position.y, transform.position.z);
         theStack = new GameObject[transform.childCount];
         for (var i = 0; i < transform.childCount; i++) {
             theStack[i] = transform.GetChild(i).gameObject;
         }
-        stackIndex = transform.childCount - 1; 
+        stackIndex = 0; 
         currentTile = theStack[stackIndex];
     }
 
@@ -124,9 +125,11 @@ public class TheStack : MonoBehaviour {
 	private void SpawnTile(){
 		stackIndex--;
 		if (stackIndex < 0)
-			stackIndex = transform.childCount-2; // -2 because stack moves down
+			stackIndex = transform.childCount-1; // -2 because stack moves down
 
 		theStack[stackIndex].transform.localPosition = new Vector3 (0, scoreCount, 0);
+        theStack[stackIndex].transform.localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
+
 	}
 
     private bool ShouldPlaceTile(){
@@ -135,28 +138,39 @@ public class TheStack : MonoBehaviour {
 
         float delta;
 
-        int previousIndex = (stackIndex == 0) ? transform.childCount - 1 : stackIndex - 1;
+        int previousIndex = (stackIndex == transform.childCount-1) ? transform.childCount - 1 : stackIndex + 1;
                                 
         previousTile = theStack[previousIndex];
         //currentTile = theStack[stackIndex];
         if(isMovingOnX) {
             delta =  previousTile.transform.position.x - currentTile.transform.position.x;
             delta = Mathf.Abs(delta);
+            if (delta >= stackBounds.x) return false;
             stackBounds.x -= delta;
+
         } else {
             delta = previousTile.transform.position.z - currentTile.transform.position.z;
             delta = Mathf.Abs(delta);
+            if (delta >= stackBounds.y) return false;
             stackBounds.y -= delta;
+
         }
-        Debug.Log(delta);
-        //previousTile.transform.localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
+        // rescale tile below (to simulate the rest of it, spawn a new one for the remainder of the size)
+        currentTile.transform.localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
 
-        //if (delta <= 0) return false;
+ 
 
+        float newPosX = (currentTile.transform.localPosition.x + previousTile.transform.localPosition.x) / 2;
+        float newPosZ = (currentTile.transform.localPosition.z + previousTile.transform.localPosition.z) / 2;
 
-        secondaryPosition = (isMovingOnX)
-            ? currentTile.transform.localPosition.x 
-            : currentTile.transform.localPosition.z;
+        if(isMovingOnX) {
+            secondaryPosition = newPosX;
+            currentTile.transform.position = new Vector3(newPosX, currentTile.transform.position.y, currentTile.transform.position.z);
+        } else {
+            secondaryPosition = newPosZ;
+            currentTile.transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, newPosZ);
+        }
+
         
 		isMovingOnX = !isMovingOnX;			
 		return true;
