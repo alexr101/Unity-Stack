@@ -156,20 +156,36 @@ public class TheStack : MonoBehaviour {
 
         }
         // rescale tile below (to simulate the rest of it, spawn a new one for the remainder of the size)
-        currentTile.transform.localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
-
- 
 
         float newPosX = (currentTile.transform.localPosition.x + previousTile.transform.localPosition.x) / 2;
         float newPosZ = (currentTile.transform.localPosition.z + previousTile.transform.localPosition.z) / 2;
 
+        GameObject cutCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        Rigidbody cutCubeRB = cutCube.AddComponent<Rigidbody>(); // Add the rigidbody.
+        cutCubeRB.mass = 5; // Set the GO's mass to 5 via the Rigidbody.
+        Vector3 currentTileSize = currentTile.GetComponent<Renderer>().bounds.size;
+
+        //float cutCubePos;
+
         if(isMovingOnX) {
+            float cutCubePos = currentTile.transform.position.x - (currentTileSize.x/2) +delta;
             secondaryPosition = newPosX;
             currentTile.transform.position = new Vector3(newPosX, currentTile.transform.position.y, currentTile.transform.position.z);
+            cutCube.transform.position = new Vector3(cutCubePos, currentTile.transform.position.y, currentTile.transform.position.z);
+            cutCube.transform.localScale = new Vector3(currentTile.transform.position.x-delta, 1, currentTileSize.z);
+
         } else {
+            float cutCubePos = currentTile.transform.position.z - (currentTileSize.z / 2) + delta;
             secondaryPosition = newPosZ;
             currentTile.transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, newPosZ);
+            cutCube.transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, cutCubePos);
+            cutCube.transform.localScale = new Vector3(currentTileSize.x, 1, currentTile.transform.position.x - delta);
         }
+
+        currentTile.transform.localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
+
+
+
 
         
 		isMovingOnX = !isMovingOnX;			
